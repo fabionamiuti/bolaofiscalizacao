@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora - Bolão da Fiscalização</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f4f7f6; }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; margin: 0; 
+        }
+    </style>
+</head>
+<body class="text-gray-800 pb-20">
+
+    <header class="bg-yellow-100 border-b-4 border-yellow-500 shadow-md p-4 mb-6 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <h1 class="text-xl font-bold uppercase">Bolão da Fiscalização</h1>
+            <div class="bg-white px-4 py-2 rounded-lg border flex items-center gap-4">
+                <span class="text-sm font-bold">TOTAL:</span>
+                <span id="total-points" class="text-3xl font-black text-yellow-600">0</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4" id="matches-container"></main>
+
+    <script>
+        const groups = {
+            'A': [['México', 'mx'], ['África do Sul', 'za'], ['Coreia Sul', 'kr'], ['Rep. Tcheca', 'cz']],
+            'B': [['Canadá', 'ca'], ['Bósnia', 'ba'], ['Catar', 'qa'], ['Suíça', 'ch']],
+            'C': [['Brasil', 'br'], ['Marrocos', 'ma'], ['Haiti', 'ht'], ['Escócia', 'gb-sct']],
+            'D': [['EUA', 'us'], ['Paraguai', 'py'], ['Austrália', 'au'], ['Turquia', 'tr']],
+            'E': [['Alemanha', 'de'], ['Curaçao', 'cw'], ['Costa Marfim', 'ci'], ['Equador', 'ec']],
+            'F': [['Holanda', 'nl'], ['Japão', 'jp'], ['Suécia', 'se'], ['Tunísia', 'tn']],
+            'G': [['Bélgica', 'be'], ['Egito', 'eg'], ['Irã', 'ir'], ['N. Zelândia', 'nz']],
+            'H': [['Espanha', 'es'], ['Cabo Verde', 'cv'], ['A. Saudita', 'sa'], ['Uruguai', 'uy']],
+            'I': [['França', 'fr'], ['Senegal', 'sn'], ['Iraque', 'iq'], ['Noruega', 'no']],
+            'J': [['Argentina', 'ar'], ['Argélia', 'dz'], ['Áustria', 'at'], ['Jordânia', 'jo']],
+            'K': [['Portugal', 'pt'], ['RD Congo', 'cd'], ['Uzbequistão', 'uz'], ['Colômbia', 'co']],
+            'L': [['Inglaterra', 'gb-eng'], ['Croácia', 'hr'], ['Gana', 'gh'], ['Panamá', 'pa']]
+        };
+
+        let matchCounter = 0;
+        let allMatches = [];
+
+        function calculateMatchPoints(r1, r2, g1, g2) {
+            if (r1 === '' || r2 === '' || g1 === '' || g2 === '') return null;
+            if (r1 == g1 && r2 == g2) return 5;
+            if ((r1 - r2) == (g1 - g2)) return 3;
+            if (Math.sign(r1 - r2) == Math.sign(g1 - g2)) return 2;
+            return 0;
+        }
+
+        function updateScores() {
+            let total = 0;
+            allMatches.forEach(id => {
+                const r1 = document.getElementById(`r1-${id}`).value;
+                const r2 = document.getElementById(`r2-${id}`).value;
+                const g1 = document.getElementById(`g1-${id}`).value;
+                const g2 = document.getElementById(`g2-${id}`).value;
+                const ptsEl = document.getElementById(`pts-${id}`);
+                const pts = calculateMatchPoints(r1, r2, g1, g2);
+                
+                if (pts !== null) {
+                    ptsEl.textContent = pts;
+                    total += pts;
+                    ptsEl.className = 'font-bold ' + (pts === 5 ? 'text-green-600' : pts === 3 ? 'text-blue-600' : pts === 2 ? 'text-yellow-600' : 'text-red-500');
+                } else {
+                    ptsEl.textContent = '-';
+                    ptsEl.className = 'text-gray-400';
+                }
+            });
+            document.getElementById('total-points').textContent = total;
+        }
+
+        function init() {
+            const container = document.getElementById('matches-container');
+            for (const [groupName, teams] of Object.entries(groups)) {
+                let html = `<div class="bg-white rounded-lg shadow border p-4 mb-6">
+                    <h2 class="font-bold border-b mb-4 pb-2">GRUPO ${groupName}</h2>`;
+                
+                // Exemplo simplificado de 3 jogos por grupo para não ficar gigante no celular
+                const matches = [[teams[0], teams[1]], [teams[2], teams[3]], [teams[0], teams[2]]];
+                
+                matches.forEach(m => {
+                    const id = matchCounter++;
+                    allMatches.push(id);
+                    html += `
+                    <div class="flex items-center gap-2 mb-2 p-2 border-b text-sm">
+                        <span class="w-20 truncate">${m[0][0]}</span>
+                        <input type="number" id="r1-${id}" class="match-input w-10 border rounded text-center">
+                        <span>x</span>
+                        <input type="number" id="r2-${id}" class="match-input w-10 border rounded text-center">
+                        <span class="w-20 truncate text-right">${m[1][0]}</span>
+                        <span class="ml-auto font-bold" id="pts-${id}">-</span>
+                    </div>`;
+                });
+                html += `</div>`;
+                container.insertAdjacentHTML('beforeend', html);
+            }
+            document.querySelectorAll('.match-input').forEach(i => i.addEventListener('input', updateScores));
+        }
+
+        init();
+    </script>
+</body>
+</html>
